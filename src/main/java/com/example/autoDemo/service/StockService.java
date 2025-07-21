@@ -40,6 +40,7 @@ public class StockService {
     public List<StockResponse> getStockInfo(List<String> stockCodes) {
         List<StockResponse> responseList = new ArrayList<>();
         RestTemplate restTemplate = new RestTemplate();
+        System.out.println("getStockInfo start:");
         for (String code : stockCodes) {
             StockResponse cached = redisService.getFromCache(code);
             if (cached != null) {
@@ -49,7 +50,7 @@ public class StockService {
             try {
                 String url = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_" + code + ".tw";
                 String response = restTemplate.getForObject(url, String.class);
-
+                System.out.println("response:" + response);
                 JSONObject json = new JSONObject(response);
                 JSONObject stock = json.getJSONArray("msgArray").getJSONObject(0);
                 LocalDateTime now = LocalDateTime.now();

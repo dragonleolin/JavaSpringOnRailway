@@ -51,10 +51,14 @@ public class StockController {
     public List<StockResponse> getStocks(@RequestBody StockRequest request) {
         List<String> codes = request.getCodes();
         List<StockResponse> result = new ArrayList<>();
-        for (String code : codes) {
-            result = stockService.getStockInfo(codes);
-        }
-        //kafkaProducerService.sendStockMessage(result); //傳送給Telegram
+        try{
+            for (String code : codes) {
+                result = stockService.getStockInfo(codes);
+            }
+            //kafkaProducerService.sendStockMessage(result); //傳送給Telegram
+        } catch (Exception e) {
+        e.printStackTrace(); // Railway logs 可見
+    }
         return result;
     }
 
