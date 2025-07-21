@@ -41,12 +41,22 @@ public class StockService {
         List<StockResponse> responseList = new ArrayList<>();
         RestTemplate restTemplate = new RestTemplate();
         System.out.println("getStockInfo start:");
+
+//        try {
+//            redisTemplate.opsForValue().set("test", "hello");
+//            String value = String.valueOf(redisTemplate.opsForValue().get("test"));
+//            System.out.println("Redis 正常連線，值為: " + value);
+//        } catch (Exception e) {
+//            System.err.println("Redis 連線失敗: " + e.getMessage());
+//        }
+
+
         for (String code : stockCodes) {
-            StockResponse cached = redisService.getFromCache(code);
-            if (cached != null) {
-                responseList.add(cached);
-                continue;
-            }
+//            StockResponse cached = redisService.getFromCache(code);
+//            if (cached != null) {
+//                responseList.add(cached);
+//                continue;
+//            }
             try {
                 String url = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_" + code + ".tw";
                 String response = restTemplate.getForObject(url, String.class);
