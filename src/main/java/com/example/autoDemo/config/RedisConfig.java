@@ -1,21 +1,34 @@
 package com.example.autoDemo.config;
 
 import com.example.autoDemo.data.StockResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+import java.net.URI;
+
 @Configuration
 public class RedisConfig {
-
+    @Value("${REDIS_URL}")
+    private String redisUrl;
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory("localhost", 6379);
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+
+        URI uri = URI.create(redisUrl);
+        config.setHostName(uri.getHost());
+        config.setPort(uri.getPort());
+        String[] userInfo = uri.getUserInfo().split(":");
+        config.setPassword(userInfo[1]);
+
+        return new LettuceConnectionFactory(config);
     }
 
     @Bean
@@ -40,5 +53,6 @@ public class RedisConfig {
         template.setHashValueSerializer(new GenericToStringSerializer<>(Object.class));
         return template;
     }
+
 
 }
