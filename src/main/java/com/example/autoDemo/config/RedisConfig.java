@@ -12,31 +12,37 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+import java.net.URI;
+
 @Configuration
 public class RedisConfig {
-
+    @Value("${REDIS_URL}")
+    private String redisUrl;
     @Bean
-    public LettuceConnectionFactory redisConnectionFactory(
-            @Value("${spring.redis.host}") String host,
-            @Value("${spring.redis.port}") int port,
-            @Value("${spring.redis.password}") String password
-    ) {
+    public LettuceConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName(host);
-        config.setPort(port);
-        config.setPassword(password);
+        System.out.println("redisUrl:"+ redisUrl);
+        URI uri = URI.create(redisUrl);
+        config.setHostName(uri.getHost());
+        config.setPort(uri.getPort());
+        String[] userInfo = uri.getUserInfo().split(":");
+        config.setPassword(userInfo[1]);
+
         return new LettuceConnectionFactory(config);
     }
 
     @Bean
-    public RedisTemplate<String, StockResponse> redisTemplate(RedisConnectionFactory connectionFactory) {
+    public RedisTemplate<String, StockResponse> redisTemplate() {
         RedisTemplate<String, StockResponse> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
+        template.setConnectionFactory(redisConnectionFactory());
+
+        // Key 序列化方式
         template.setKeySerializer(new StringRedisSerializer());
+        // Value 使用 JSON 序列化
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+
         return template;
     }
-
     @Bean(name = "countRedisTemplate")
     public RedisTemplate<String, Object> countRedisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
@@ -47,5 +53,6 @@ public class RedisConfig {
         template.setHashValueSerializer(new GenericToStringSerializer<>(Object.class));
         return template;
     }
-}
 
+
+}
