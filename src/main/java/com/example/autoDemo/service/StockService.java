@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -49,8 +50,9 @@ public class StockService {
 //        } catch (Exception e) {
 //            System.err.println("Redis 連線失敗: " + e.getMessage());
 //        }
-
-
+        redisTemplate.opsForValue().set("test-stock", new StockResponse("2330", "TSMC", "1100", "test"), Duration.ofMinutes(1));
+        StockResponse result = redisTemplate.opsForValue().get("test-stock");
+        System.out.println("result:"+ result != null ? result.getName() : "Redis 連線失敗");
         for (String code : stockCodes) {
             StockResponse cached = redisService.getFromCache(code);
             if (cached != null) {

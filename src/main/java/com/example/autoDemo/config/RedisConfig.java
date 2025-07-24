@@ -12,28 +12,31 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-import java.net.URI;
-
 @Configuration
 public class RedisConfig {
+
     @Bean
-    public RedisConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory(); // Spring Boot 會自動從 properties 載入 host/port/password
+    public LettuceConnectionFactory redisConnectionFactory(
+            @Value("${spring.redis.host}") String host,
+            @Value("${spring.redis.port}") int port,
+            @Value("${spring.redis.password}") String password
+    ) {
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+        config.setHostName(host);
+        config.setPort(port);
+        config.setPassword(password);
+        return new LettuceConnectionFactory(config);
     }
 
-
     @Bean
-    public RedisTemplate<String, StockResponse> redisTemplate() {
+    public RedisTemplate<String, StockResponse> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, StockResponse> template = new RedisTemplate<>();
-        template.setConnectionFactory(redisConnectionFactory());
-
-        // Key 序列化方式
+        template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
-        // Value 使用 JSON 序列化
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-
         return template;
     }
+
     @Bean(name = "countRedisTemplate")
     public RedisTemplate<String, Object> countRedisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
@@ -44,6 +47,5 @@ public class RedisConfig {
         template.setHashValueSerializer(new GenericToStringSerializer<>(Object.class));
         return template;
     }
-
-
 }
+
