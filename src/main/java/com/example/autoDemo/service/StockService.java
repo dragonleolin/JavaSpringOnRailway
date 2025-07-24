@@ -52,11 +52,11 @@ public class StockService {
 
 
         for (String code : stockCodes) {
-//            StockResponse cached = redisService.getFromCache(code);
-//            if (cached != null) {
-//                responseList.add(cached);
-//                continue;
-//            }
+            StockResponse cached = redisService.getFromCache(code);
+            if (cached != null) {
+                responseList.add(cached);
+                continue;
+            }
             try {
                 String url = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_" + code + ".tw";
                 String response = restTemplate.getForObject(url, String.class);

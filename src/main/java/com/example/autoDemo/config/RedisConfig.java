@@ -16,20 +16,11 @@ import java.net.URI;
 
 @Configuration
 public class RedisConfig {
-    @Value("${REDIS_URL}")
-    private String redisUrl;
     @Bean
-    public LettuceConnectionFactory redisConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-
-        URI uri = URI.create(redisUrl);
-        config.setHostName(uri.getHost());
-        config.setPort(uri.getPort());
-        String[] userInfo = uri.getUserInfo().split(":");
-        config.setPassword(userInfo[1]);
-
-        return new LettuceConnectionFactory(config);
+    public RedisConnectionFactory redisConnectionFactory() {
+        return new LettuceConnectionFactory(); // Spring Boot 會自動從 properties 載入 host/port/password
     }
+
 
     @Bean
     public RedisTemplate<String, StockResponse> redisTemplate() {
