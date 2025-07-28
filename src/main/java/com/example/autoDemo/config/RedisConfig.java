@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,8 +26,7 @@ public class RedisConfig {
         config.setHostName(uri.getHost());
         config.setPort(uri.getPort());
         String[] userInfo = uri.getUserInfo().split(":");
-        config.setPassword(RedisPassword.of(userInfo[1]));
-
+        config.setPassword(userInfo[1]);
 
         return new LettuceConnectionFactory(config);
     }
@@ -42,10 +40,6 @@ public class RedisConfig {
         template.setKeySerializer(new StringRedisSerializer());
         // Value 使用 JSON 序列化
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-
-        template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
-
 
         return template;
     }
