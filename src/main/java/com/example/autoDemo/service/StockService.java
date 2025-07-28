@@ -50,15 +50,15 @@ public class StockService {
 //        } catch (Exception e) {
 //            System.err.println("Redis 連線失敗: " + e.getMessage());
 //        }
-        redisTemplate.opsForValue().set("test-stock", new StockResponse("2330", "TSMC", "1100", "test"), Duration.ofMinutes(1));
+        redisTemplate.opsForValue().set("test-stock", new StockResponse("2330", "AMD", "1100", "test"), Duration.ofMinutes(1));
         StockResponse result = redisTemplate.opsForValue().get("test-stock");
         System.out.println("result:" + result != null ? result.getName() : "Redis 連線失敗");
         for (String code : stockCodes) {
-            StockResponse cached = redisService.getFromCache(code);
-            if (cached != null) {
-                responseList.add(cached);
-                continue;
-            }
+//            StockResponse cached = redisService.getFromCache(code);
+//            if (cached != null) {
+//                responseList.add(cached);
+//                continue;
+//            }
             try {
                 String url = "https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_" + code + ".tw";
                 String response = restTemplate.getForObject(url, String.class);
@@ -67,7 +67,7 @@ public class StockService {
                 JSONObject stock = json.getJSONArray("msgArray").getJSONObject(0);
                 LocalDateTime now = LocalDateTime.now();
                 String formattedTime = now.format(DATE_TIME_FORMATTER);
-
+                System.out.println("stock:"+ stock);
                 String name = stock.getString("n");
                 String price = stock.getString("z");
                 String time = stock.getString("t");
