@@ -52,7 +52,7 @@ public class StockService {
 //        }
         redisTemplate.opsForValue().set("test-stock", new StockResponse("2330", "TSMC", "1100", "test"), Duration.ofMinutes(1));
         StockResponse result = redisTemplate.opsForValue().get("test-stock");
-        System.out.println("result:"+ result != null ? result.getName() : "Redis 連線失敗");
+        System.out.println("result:" + result != null ? result.getName() : "Redis 連線失敗");
         for (String code : stockCodes) {
             StockResponse cached = redisService.getFromCache(code);
             if (cached != null) {
