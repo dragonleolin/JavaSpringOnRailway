@@ -41,7 +41,7 @@ public class StockScheduler {
     }
 
     //@Scheduled(cron = "0 15 12 * * ?", zone = "Asia/Taipei") // 每天中午 12:15 台灣時間
-    @Scheduled(cron = "0 40 16 * * ?", zone = "Asia/Taipei") // 每天中午 12:15 台灣時間
+    //@Scheduled(cron = "0 40 16 * * ?", zone = "Asia/Taipei") // 每天中午 12:15 台灣時間
     public void pushDailyStockInfo() {
         if (codes.isEmpty()) return;
 
