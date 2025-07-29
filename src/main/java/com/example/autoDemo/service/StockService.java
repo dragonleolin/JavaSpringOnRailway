@@ -4,6 +4,7 @@ import com.example.autoDemo.data.FugleKdjResponse;
 import com.example.autoDemo.data.KdjData;
 import com.example.autoDemo.data.StockResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.micrometer.common.util.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,7 @@ public class StockService {
     private RedisTemplate<String, StockResponse> redisTemplate;
     private final RestTemplate restTemplate = new RestTemplate();
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public List<StockResponse> getStockInfo(List<String> stockCodes) {
         List<StockResponse> responseList = new ArrayList<>();
@@ -50,9 +52,9 @@ public class StockService {
 //        } catch (Exception e) {
 //            System.err.println("Redis 連線失敗: " + e.getMessage());
 //        }
-        redisTemplate.opsForValue().set("test-stock", new StockResponse("2330", "AMD", "1100", "test"), Duration.ofMinutes(1));
-        StockResponse result = redisTemplate.opsForValue().get("test-stock");
-        System.out.println("result:" + result != null ? result.getName() : "Redis 連線失敗");
+//        redisTemplate.opsForValue().set("test-stock", new StockResponse("2330", "AMD", "1100", "test"), Duration.ofMinutes(1));
+//        StockResponse result = redisTemplate.opsForValue().get("test-stock");
+//        System.out.println("result:" + result != null ? result.getName() : "Redis 連線失敗");
         for (String code : stockCodes) {
 //            StockResponse cached = redisService.getFromCache(code);
 //            if (cached != null) {
@@ -74,21 +76,26 @@ public class StockService {
                 if ("-".equals(price)) {
                     price = stock.getString("h"); // 若沒有試算參考成交量，取當日最高價
                 }
+                String today = LocalDateTime.now().format(formatter);
+                KdjData kdjData = getLatestKdj(code, today, today);
+                System.out.println("kdjData:" + kdjData);
+                if (kdjData == null) {
+                    LocalDate yesterday = getPreviousWorkday(LocalDate.now());
+                    String workday = yesterday.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    KdjData kd = getLatestKdj(code, workday, workday);
+                    System.out.println("workday kd:"+ kd);
+                }
                 StockResponse stockResponse = new StockResponse();
                 stockResponse.setCode(code);
                 stockResponse.setName(name);
                 stockResponse.setPrice(price);
                 stockResponse.setMarketTime(formattedTime);
-
-                // 寫入 Redis 快取 (10 分鐘)
-                redisService.saveToCache(code, stockResponse);
-
-                // 寫入 Redis 歷史資料 (不設定 TTL)
-                redisService.saveToHistory(code, formattedTime, stockResponse);
+                stockResponse.setK(Math.round(kdjData.getK() * 100.0) / 100.0);
+                stockResponse.setD(Math.round(kdjData.getD() * 100.0) / 100.0);
 
                 responseList.add(stockResponse);
             } catch (Exception e) {
-                responseList.add(new StockResponse(code, "查詢失敗", "-", "-"));
+                responseList.add(new StockResponse(code, "查詢失敗", "-", "-", 0.0, 0.0));
             }
         }
 
@@ -121,6 +128,7 @@ public class StockService {
         LocalDate yesterday = getPreviousWorkday(LocalDate.now());
         System.out.println("最近的工作日是: " + yesterday);
         String today = yesterday.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        System.out.println("today: " + today);
         KdjData kd = getLatestKdj(stockNo, today, today);
         System.out.println("kd:"+ kd);
         if (kd == null) return;
